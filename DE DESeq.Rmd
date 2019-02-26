@@ -1,0 +1,718 @@
+---
+title: "DE analysis"
+output: html_notebook
+---
+```{r}
+library(ggplot2)
+theme_own <- function () {
+  theme_minimal(base_size=12,base_family="Times") %+replace% 
+        theme(
+            axis.line = element_line(linetype = "solid"),
+            axis.text = element_text(size = 10),
+            axis.title = element_text(size = 12),
+            legend.text = element_text(size = 10),
+            legend.title = element_text(size = 12),
+            strip.text = element_text(size = 12),
+            plot.title = element_text(size = 12, face = "bold"),
+            panel.grid.major = element_line(linetype = "solid", color = "gray90"),
+            panel.grid.minor = element_line(linetype = "dotted", color = "grey90"),
+            panel.spacing = unit(1, "cm")
+        )
+}
+
+```
+
+### Input: Count Table 
+```{r read_all_tables}
+sampleID <- c("R3", "R3AL", "R3AS", "R3IL", "R3IS", "R4", "R4AL", "R4AS", "R4IL", "R4IS", "R4ML", "R4MS", "R5", "R5AL", "R5AS", "R5ML", "R5MS")
+tablename1 <- c(1: 17)
+filename1 <- c(1:17)
+for (i in c(1:17)){
+  tablename1[i] <- paste(sampleID[i], "_sRNA", sep = '')
+  filename1[i] <- paste("Kallisto_sRNA_reduce_v3/", sampleID[i], "/abundance.tsv", sep = '')
+  assign(tablename1[i], read.table(filename1[i], header = TRUE, row.names = 1))
+}
+cts <- data.frame(round(R3_sRNA$est_counts), round(R3AL_sRNA$est_counts), round(R3AS_sRNA$est_counts), round(R3IL_sRNA$est_counts), round(R3IS_sRNA$est_counts), round(R4_sRNA$est_counts), round(R4AL_sRNA$est_counts), round(R4AS_sRNA$est_counts), round(R4IL_sRNA$est_counts), round(R4IS_sRNA$est_counts), round(R4ML_sRNA$est_counts), round(R4MS_sRNA$est_counts), round(R5_sRNA$est_counts), round(R5AL_sRNA$est_counts), round(R5AS_sRNA$est_counts), round(R5ML_sRNA$est_counts), round(R5MS_sRNA$est_counts))
+rownames(cts) <- rownames(R3_sRNA)
+colnames(cts) <- c("R3", "R3AL", "R3AS", "R3IL", "R3IS", "R4", "R4AL", "R4AS", "R4IL", "R4IS", "R4ML", "R4MS", "R5", "R5AL", "R5AS", "R5ML", "R5MS")
+write.table(cts, file = "Ref_based/AB_Count_Table.txt",quote = FALSE, sep = "\t")
+```
+
+### Denovo
+```{r}
+tablename1 <- c(1: 17)
+filename1 <- c(1:17)
+for (i in c(1:17)){
+  tablename1[i] <- paste(sampleID[i], "_sRNA", sep = '')
+  filename1[i] <- paste("Kallisto_cdhit/", sampleID[i], "/abundance.tsv", sep = '')
+  assign(tablename1[i], read.table(filename1[i], header = TRUE, row.names = 1))
+}
+cts_cdhit <- data.frame(round(R3_sRNA$est_counts), round(R3AL_sRNA$est_counts), round(R3AS_sRNA$est_counts), round(R3IL_sRNA$est_counts), round(R3IS_sRNA$est_counts), round(R4_sRNA$est_counts), round(R4AL_sRNA$est_counts), round(R4AS_sRNA$est_counts), round(R4IL_sRNA$est_counts), round(R4IS_sRNA$est_counts), round(R4ML_sRNA$est_counts), round(R4MS_sRNA$est_counts), round(R5_sRNA$est_counts), round(R5AL_sRNA$est_counts), round(R5AS_sRNA$est_counts), round(R5ML_sRNA$est_counts), round(R5MS_sRNA$est_counts))
+rownames(cts_cdhit) <- rownames(R3_sRNA)
+colnames(cts_cdhit) <- c("R3", "R3AL", "R3AS", "R3IL", "R3IS", "R4", "R4AL", "R4AS", "R4IL", "R4IS", "R4ML", "R4MS", "R5", "R5AL", "R5AS", "R5ML", "R5MS")
+write.table(cts_cdhit, file = "Ref_based/AB_cts_cdhit.txt",quote = FALSE, sep = "\t")
+keep <- rowSums(cts_cdhit) >= 20
+cts_cdhit <- cts_cdhit[keep,]
+```
+
+```{r}
+tablename1 <- c(1: 17)
+filename1 <- c(1:17)
+for (i in c(1:17)){
+  tablename1[i] <- paste(sampleID[i], "_sRNA", sep = '')
+  filename1[i] <- paste("Kallisto_cdhit_NotInABR/", sampleID[i], "/abundance.tsv", sep = '')
+  assign(tablename1[i], read.table(filename1[i], header = TRUE, row.names = 1))
+}
+cts_NotInABR <- data.frame(round(R3_sRNA$est_counts), round(R3AL_sRNA$est_counts), round(R3AS_sRNA$est_counts), round(R3IL_sRNA$est_counts), round(R3IS_sRNA$est_counts), round(R4_sRNA$est_counts), round(R4AL_sRNA$est_counts), round(R4AS_sRNA$est_counts), round(R4IL_sRNA$est_counts), round(R4IS_sRNA$est_counts), round(R4ML_sRNA$est_counts), round(R4MS_sRNA$est_counts), round(R5_sRNA$est_counts), round(R5AL_sRNA$est_counts), round(R5AS_sRNA$est_counts), round(R5ML_sRNA$est_counts), round(R5MS_sRNA$est_counts))
+rownames(cts_NotInABR) <- rownames(R3_sRNA)
+colnames(cts_NotInABR) <- c("R3", "R3AL", "R3AS", "R3IL", "R3IS", "R4", "R4AL", "R4AS", "R4IL", "R4IS", "R4ML", "R4MS", "R5", "R5AL", "R5AS", "R5ML", "R5MS")
+write.table(cts_NotInABR, file = "Ref_based/AB_cts_NotInABR.txt",quote = FALSE, sep = "\t")
+keep <- rowSums(cts_NotInABR) >= 20
+cts_NotInABR <- cts_NotInABR[keep,]
+```
+
+
+
+### (Opt)Compare sRNA_only and all
+```{r}
+tablename2 <- c(1: 17)
+filename2 <- c(1:17)
+for (i in c(1:17)){
+  tablename2[i] <- paste(sampleID[i], "_all", sep = '')
+  filename2[i] <- paste("Kallisto_all_rna/", sampleID[i], "/abundance.tsv", sep = '')
+  assign(tablename2[i], read.table(filename2[i], header = TRUE, row.names = 1))
+}
+```
+
+
+```{r}
+tablename3 <- c(1: 17)
+for (i in c(1:17)){
+  tablename3[i] <- sampleID[i]
+  assign(tablename3[i], 
+         data.frame(c(round(eval(parse(text = tablename1[i]))$est_counts), rep(NA, 92)), 
+                    round(eval(parse(text = tablename2[i]))$est_counts), 
+                    row.names = rownames(eval(parse(text = tablename2[i]))),
+                    check.rows = FALSE))
+}
+```
+
+```{r countTable_srtRNA}
+cts_all <- data.frame(round(R3_all$est_counts), round(R3AL_all$est_counts), round(R3AS_all$est_counts), round(R3IL_all$est_counts), round(R3IS_all$est_counts), round(R4_all$est_counts), round(R4AL_all$est_counts), round(R4AS_all$est_counts), round(R4IL_all$est_counts), round(R4IS_all$est_counts), round(R4ML_all$est_counts), round(R4MS_all$est_counts), round(R5_all$est_counts), round(R5AL_all$est_counts), round(R5AS_all$est_counts), round(R5ML_all$est_counts), round(R5MS_all$est_counts))
+rownames(cts_all) <- rownames(R3_all)
+colnames(cts_all) <- c("R3", "R3AL", "R3AS", "R3IL", "R3IS", "R4", "R4AL", "R4AS", "R4IL", "R4IS", "R4ML", "R4MS", "R5", "R5AL", "R5AS", "R5ML", "R5MS")
+write.table(cts_all, file = "Ref_based/AB_Count_Table_all.txt",quote = FALSE, sep = "\t")
+```
+
+```{r}
+library(ggplot2)
+colnames(R3) <- c("sRNA", "all")
+ggplot(R3, aes(x = R3$sRNA + 1, y = R3$all + 1)) + 
+  geom_point(alpha = 0.3, colour = "#56B4E9", size = 1.5) +  
+  scale_x_log10(name = "1") + 
+  scale_y_log10(name = "2") +
+  geom_abline(intercept = 0, slope = 1, colour = "#CC79A7", size = 0.6)
+nrow(subset(R3, R3$sRNA == 0 & R3$all == 0))
+
+colnames(R3AL) <- c("sRNA", "all")
+ggplot(R3AL, aes(x = R3AL$sRNA + 1, y = R3AL$all + 1)) + 
+  geom_point(alpha = 0.3, colour = "#56B4E9", size = 1.5) +  
+  scale_x_log10(name = "1") + 
+  scale_y_log10(name = "2") +
+  geom_abline(intercept = 0, slope = 1, colour = "#CC79A7", size = 0.6)
+
+```
+
+
+### (Opt) all_RNA and tRNA pct
+```{r countTable_mrtRNA}
+sampleID <- c("R3", "R3AL", "R3AS", "R3IL", "R3IS", "R4", "R4AL", "R4AS", "R4IL", "R4IS", "R4ML", "R4MS", "R5", "R5AL", "R5AS", "R5ML", "R5MS")
+tablename <- c(1: 17)
+filename <- c(1:17)
+for (i in c(1:17)){
+  tablename[i] <- paste(sampleID[i], "_all", sep = '')
+  filename[i] <- paste("all_rna_HTSeqcount/", sampleID[i], "_all_count_v3.txt", sep = '')
+  assign(tablename[i], read.table(filename[i], header = FALSE))
+}
+cts_all_annot <- data.frame(round(R3_all$V2), round(R3AL_all$V2), round(R3AS_all$V2), round(R3IL_all$V2), round(R3IS_all$V2), round(R4_all$V2), round(R4AL_all$V2), round(R4AS_all$V2), round(R4IL_all$V2), round(R4IS_all$V2), round(R4ML_all$V2), round(R4MS_all$V2), round(R5_all$V2), round(R5AL_all$V2), round(R5AS_all$V2), round(R5ML_all$V2), round(R5MS_all$V2))
+rownames(cts_all_annot) <- R3_all$V1
+colnames(cts_all_annot) <- c("R3", "R3AL", "R3AS", "R3IL", "R3IS", "R4", "R4AL", "R4AS", "R4IL", "R4IS", "R4ML", "R4MS", "R5", "R5AL", "R5AS", "R5ML", "R5MS")
+#cts_all_annot <- cts_all_annot[1:(nrow(cts_all_annot)-3),]
+```
+
+```{r}
+colSums(cts_all_annot)
+trna_pct <- colSums(cts_all_annot[rownames(cts_all_annot) %like% "tRNA",])/colSums(cts_all_annot)
+tRNA_pct <- data.frame(trna_pct)
+rrna_pct <- colSums(cts_all_annot[rownames(cts_all_annot) %like% "rRNA",])/colSums(cts_all_annot)
+rRNA_pct <- data.frame(rrna_pct)
+```
+
+###(TBD) Input: Annotation
+```{r}
+annot <- read.table("merge_reduce2_0.5_filtered.gff", header = FALSE)
+annot <- data.frame(annot$V1, annot$V4, annot$V5, annot$V5-annot$V4+1, row.names = substr(annot$V9, start=4, stop=15))
+colnames(annot) <- c("chrom","beg","end","length")
+nrow(subset(annot, annot$length > 500)) 
+nrow(subset(annot, annot$length <= 300)) / nrow(annot)
+min(annot$length)
+```
+
+### Length Distribution
+```{r}
+library(ggplot2)
+annot <- read.table("ABR_sRNA_ref_based.gff", header = F)
+annot$length <- annot$V5 - annot$V4
+ggplot(subset(annot, annot$length <= 500), aes(length)) + geom_density() + xlab("Length of sRNAs") + ylab("Distribution density") + theme_own()
+nrow(subset(annot, annot$length <= 300))
+ggsave("Ref_based/length_distribution.png", height = 3, width = 3)
+```
+
+
+
+### Design Table
+```{r}
+# read design table
+coldata <- read.table("DE_Design_Table.txt", colClasses = c("factor", "factor", "factor", "factor"))
+coldata
+```
+
+### Plot count distribution
+```{r}
+library(reshape2)
+cts_melt <- melt(cts)
+max(cts_melt$value)
+ggplot(subset(cts_melt), aes(value, colour = variable)) + 
+  geom_density(alpha = 0.1, size = 0.4) +
+  scale_x_log10(limits=c(2,max(cts_melt$value)), # cut off at min 2
+                name="Read Count") +
+  scale_y_continuous(limits=c(0,1.6),
+                      breaks=seq(0,1.6,0.4), 
+                     name="Density") +
+  theme(axis.text = element_text(size = 10)) +
+  guides(colour=guide_legend(ncol=2, title = "Sample")) +
+  theme_own()
+ggsave("Ref_based/count_distribution.png", width = 15, height = 10, unit = "cm")
+
+```
+
+### DESeq
+```{r}
+library(DESeq2)
+dds <- DESeqDataSetFromMatrix(countData = cts,
+                              coldata,
+                              design = ~ sampleID + condition)
+keep <- rowSums(counts(dds)) >= 20
+dds <- dds[keep,]
+dds <- DESeq(dds)
+dds
+count_dis <- data.frame(rowSums(cts), row.names = row.names(cts))
+colnames(count_dis) <- c("sum")
+write.table(count_dis, file = "Ref_based/count_dis.txt", sep = "\t", quote = FALSE)
+```
+
+### Plot Norm count distribution
+```{r}
+library(reshape2)
+cts_norm <- as.data.frame(counts(dds, normalized = TRUE))
+cts_norm_melt <- melt(cts_norm)
+ggplot(subset(cts_norm_melt), aes(value, colour = variable)) + 
+  geom_density(alpha = 0.1, size = 0.4) +
+  scale_x_log10(limits=c(2, max(cts_norm_melt$value)), # cut off at min 2
+                name="Read Count (normalized)") +
+  scale_y_continuous(limits=c(0,1.5),
+                    breaks=seq(0,2,0.5), 
+                     name="Density") +
+  theme(axis.text = element_text(size = 12)) +
+  guides(colour=guide_legend(ncol=2, title = "Sample")) +
+  theme_own()
+ggsave("Ref_based/count_distribution_norm.png", width = 15, height = 10, unit = "cm")
+```
+
+### Heatmap, PCA
+```{r}
+# normalize each sRNA by their mean value
+cts_norm_by_mean <- cts_norm/(rowSums(cts_norm)/ncol(cts_norm))
+```
+
+```{r}
+library("RColorBrewer")
+library("pheatmap")
+sampleDists <- dist(t(cts_norm_by_mean))
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- colnames(cts_norm_by_mean)
+colnames(sampleDistMatrix) <- colnames(cts_norm_by_mean)
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows=sampleDists,
+         clustering_distance_cols=sampleDists,
+         col=colors)
+```
+
+```{r}
+library(ggfortify)
+cts_norm_trans <- t(cts_norm_by_mean)
+cts_norm_trans_ID <- data.frame(coldata$sampleID, coldata$phase, coldata$treatment, cts_norm_trans)
+pcaData <- prcomp(cts_norm_trans)
+summary(pcaData)
+eigs <- (pcaData$sdev)^2
+percentVar <- round(eigs / sum(eigs) * 100, digit = 2)
+ggplot(pcaData, aes(PC1, PC2, color=coldata$phase, shape=coldata$treatment,label=coldata$sampleID)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  scale_shape_manual(labels = c("A: Amikacin", "I: Imipenem", "M: Meropenem"), values = c(16,17,18, 4)) +
+  scale_color_manual(labels = c("C: Untreated midlog phase","L: Midlog phase", "S: Stationary phase"), values = c("#000000", "#CC79A7", "#56B4E9")) +
+  labs(color="Phase:") + labs(shape="Treatment:") +
+  geom_text(aes(label=coldata$sampleID),hjust=-0.5, vjust=0) + 
+  theme_own()
+ggsave("Ref_based/PCA.png", width = 15, height = 8, unit = "cm")
+```
+
+#Clustering
+```{r}
+library(gplots)
+library(RColorBrewer) 
+library(genefilter)
+install.packages("extracat")
+library(extracat)
+cts_norm_mtx <- as.matrix(cts_norm_by_mean)
+dis <- dist(cts_norm_mtx)
+order()
+hr <- hclust(dist(cts_norm_mtx))
+pl_cl <- plot(hr, labels = FALSE)
+heatmap.2(cts_norm_mtx, Rowv = as.dendrogram(hr), scale = "row", density.info="none", trace="none")
+```
+
+
+
+```{r}
+library(factoextra)
+pca.var <- get_pca_var(pcaData)
+pca.var$coord
+pca.var$contrib
+pca.ind <- get_pca_ind(pcaData)
+pca.ind$contrib
+```
+
+
+
+###DE: phase, LA VS LN
+```{r}
+res_LALN <- results(dds, contrast = c('condition', 'LA', 'LN'), alpha = 0.05)
+summary(res_LALN)
+res_LALN_ordered <- res_LALN[order(res_LALN$padj),]
+res_LALN_ordered <- as.data.frame(res_LALN_ordered)
+res_LALN_ordered <- subset(res_LALN_ordered, res_LALN_ordered$padj < 0.05)
+write.table(res_LALN_ordered, file = "Ref_based/DE_result/DE_LALN.txt", sep = "\t", quote = FALSE)
+```
+
+###DE: phase, LI VS LN
+```{r}
+res_LILN <- results(dds, contrast = c('condition', 'LI', 'LN'), alpha = 0.05)
+summary(res_LILN)
+res_LILN_ordered <- res_LILN[order(res_LILN$padj),]
+res_LILN_ordered <- as.data.frame(res_LILN_ordered)
+res_LILN_ordered <- subset(res_LILN_ordered, res_LILN_ordered$padj < 0.05)
+write.table(res_LILN_ordered, file = "Ref_based/DE_result/DE_LILN.txt", sep = "\t", quote = FALSE)
+```
+
+###DE: phase, LM VS LN
+```{r}
+res_LMLN <- results(dds, contrast = c('condition', 'LM', 'LN'), alpha = 0.05)
+summary(res_LMLN)
+res_LMLN_ordered <- res_LMLN[order(res_LMLN$padj),]
+res_LMLN_ordered <- as.data.frame(res_LMLN_ordered)
+res_LMLN_ordered <- subset(res_LMLN_ordered, res_LMLN_ordered$padj < 0.05)
+write.table(res_LMLN_ordered, file = "Ref_based/DE_result/DE_LMLN.txt", sep = "\t", quote = FALSE)
+```
+
+#####################################################################################
+###DE: phase, SA VS LN
+```{r}
+res_SALN <- results(dds, contrast = c('condition', 'SA', 'LN'), alpha = 0.05)
+summary(res_SALN)
+res_SALN_ordered <- res_SALN[order(res_SALN$padj),]
+res_SALN_ordered <- as.data.frame(res_SALN_ordered)
+res_SALN_ordered <- subset(res_SALN_ordered, res_SALN_ordered$padj < 0.05)
+write.table(res_SALN_ordered, file = "Ref_based/DE_result/DE_SALN.txt", sep = "\t", quote = FALSE)
+```
+
+###DE: phase, SI VS LN
+```{r}
+res_SILN <- results(dds, contrast = c('condition', 'SI', 'LN'), alpha = 0.05)
+summary(res_SILN)
+res_SILN_ordered <- res_SILN[order(res_SILN$padj),]
+res_SILN_ordered <- as.data.frame(res_SILN_ordered)
+res_SILN_ordered <- subset(res_SILN_ordered, res_SILN_ordered$padj < 0.05)
+write.table(res_SILN_ordered, file = "Ref_based/DE_result/DE_SILN.txt", sep = "\t", quote = FALSE)
+```
+
+###DE: phase, SM VS LN
+```{r}
+res_SMLN <- results(dds, contrast = c('condition', 'SM', 'LN'), alpha = 0.05)
+summary(res_SMLN)
+res_SMLN_ordered <- res_SMLN[order(res_SMLN$padj),]
+res_SMLN_ordered <- as.data.frame(res_SMLN_ordered)
+res_SMLN_ordered <- subset(res_SMLN_ordered, res_SMLN_ordered$padj < 0.05)
+write.table(res_SMLN_ordered, file = "Ref_based/DE_result/DE_SMLN.txt", sep = "\t", quote = FALSE)
+```
+
+#####################################################################################
+###DE: phase, SA VS LA
+```{r}
+res_SALA <- results(dds, contrast = c('condition', 'SA', 'LA'), alpha = 0.05)
+summary(res_SALA)
+res_SALA_ordered <- res_SALA[order(res_SALA$padj),]
+res_SALA_ordered <- as.data.frame(res_SALA_ordered)
+res_SALA_ordered <- subset(res_SALA_ordered, res_SALA_ordered$padj < 0.05)
+write.table(res_SALA_ordered, file = "Ref_based/DE_result/DE_SALA.txt", sep = "\t", quote = FALSE)
+```
+
+###DE: phase, SI VS LI
+```{r}
+res_SILI <- results(dds, contrast = c('condition', 'SI', 'LA'), alpha = 0.05)
+summary(res_SILI)
+res_SILI_ordered <- res_SILI[order(res_SILI$padj),]
+res_SILI_ordered <- as.data.frame(res_SILI_ordered)
+res_SILI_ordered <- subset(res_SILI_ordered, res_SILI_ordered$padj < 0.05)
+write.table(res_SILI_ordered, file = "Ref_based/DE_result/DE_SILI.txt", sep = "\t", quote = FALSE)
+```
+
+###DE: phase, SM VS LM
+```{r}
+res_SMLM <- results(dds, contrast = c('condition', 'SM', 'LA'), alpha = 0.05)
+summary(res_SMLM)
+res_SMLM_ordered <- res_SMLM[order(res_SMLM$padj),]
+res_SMLM_ordered <- as.data.frame(res_SMLM_ordered)
+res_SMLM_ordered <- subset(res_SMLM_ordered, res_SMLM_ordered$padj < 0.05)
+write.table(res_SMLM_ordered, file = "Ref_based/DE_result/DE_SMLM.txt", sep = "\t", quote = FALSE)
+```
+###########################################################################################################################################################################################################################################################
+###DE: treatment, LI VS LA
+```{r}
+res_LILA <- results(dds, contrast = c('condition', 'LI', 'LA'), alpha = 0.05)
+summary(res_LILA)
+res_LILA_ordered <- res_LILA[order(res_LILA$padj),]
+res_LILA_ordered <- as.data.frame(res_LILA_ordered)
+res_LILA_ordered <- subset(res_LILA_ordered, res_LILA_ordered$padj < 0.05)
+write.table(res_LILA_ordered, file = "Ref_based/DE_result/DE_LILA.txt", sep = "\t", quote = FALSE)
+```
+###DE: treatment, LM VS LA
+```{r}
+res_LMLA <- results(dds, contrast = c('condition', 'LM', 'LA'), alpha = 0.05)
+summary(res_LMLA)
+res_LMLA_ordered <- res_LMLA[order(res_LMLA$padj),]
+res_LMLA_ordered <- as.data.frame(res_LMLA_ordered)
+res_LMLA_ordered <- subset(res_LMLA_ordered, res_LMLA_ordered$padj < 0.05)
+write.table(res_LMLA_ordered, file = "Ref_based/DE_result/DE_LMLA.txt", sep = "\t", quote = FALSE)
+```
+###DE: treatment, LM VS LI
+```{r}
+res_LMLI <- results(dds, contrast = c('condition', 'LM', 'LI'), alpha = 0.05)
+summary(res_LMLI)
+res_LMLI_ordered <- res_LMLI[order(res_LMLI$padj),]
+res_LMLI_ordered <- as.data.frame(res_LMLI_ordered)
+res_LMLI_ordered <- subset(res_LMLI_ordered, res_LMLI_ordered$padj < 0.05)
+write.table(res_LMLI_ordered, file = "Ref_based/DE_result/DE_LMLI.txt", sep = "\t", quote = FALSE)
+```
+####################################
+###DE: treatment, SI VS SA
+```{r}
+res_SISA <- results(dds, contrast = c('condition', 'SI', 'SA'), alpha = 0.05)
+summary(res_SISA)
+res_SISA_ordered <- res_SISA[order(res_SISA$padj),]
+res_SISA_ordered <- as.data.frame(res_SISA_ordered)
+res_SISA_ordered <- subset(res_SISA_ordered, res_SISA_ordered$padj < 0.05)
+write.table(res_SISA_ordered, file = "Ref_based/DE_result/DE_SISA.txt", sep = "\t", quote = FALSE)
+```
+###DE: treatment, SM VS SA
+```{r}
+res_SMSA <- results(dds, contrast = c('condition', 'SM', 'SA'), alpha = 0.05)
+summary(res_SMSA)
+res_SMSA_ordered <- res_SMSA[order(res_SMSA$padj),]
+res_SMSA_ordered <- as.data.frame(res_SMSA_ordered)
+res_SMSA_ordered <- subset(res_SMSA_ordered, res_SMSA_ordered$padj < 0.05)
+write.table(res_SMSA_ordered, file = "Ref_based/DE_result/DE_SMSA.txt", sep = "\t", quote = FALSE)
+```
+###DE: treatment, SM VS SI
+```{r}
+res_SMSI <- results(dds, contrast = c('condition', 'SM', 'SI'), alpha = 0.05)
+summary(res_SMSI)
+res_SMSI_ordered <- res_SMSI[order(res_SMSI$padj),]
+res_SMSI_ordered <- as.data.frame(res_SMSI_ordered)
+res_SMSI_ordered <- subset(res_SMSI_ordered, res_SMSI_ordered$padj < 0.05)
+write.table(res_SMSI_ordered, file = "Ref_based/DE_result/DE_SMSI.txt", sep = "\t", quote = FALSE)
+```
+
+###Plot MA
+```{r}
+png(filename = "MAplot/MAplot_LALN.png", width = 300, heigh = 300)
+plotMA(res_LALN, alpha = 0.5)
+dev.off()
+png(filename = "Ref_based/MAplot/MAplot_LILN.png", width = 300, heigh = 300)
+plotMA(res_LILN, alpha = 0.5)
+dev.off()
+png(filename = "Ref_based/MAplot/MAplot_LMLN.png", width = 300, heigh = 300)
+plotMA(res_LMLN, alpha = 0.5)
+dev.off()
+```
+```{r}
+png(filename = "Ref_based/MAplot/MAplot_SALN.png", width = 300, heigh = 300)
+plotMA(res_SALN, alpha = 0.5)
+dev.off()
+png(filename = "Ref_based/MAplot/MAplot_SILN.png", width = 300, heigh = 300)
+plotMA(res_SILN, alpha = 0.5)
+dev.off()
+png(filename = "Ref_based/MAplot/MAplot_SMLN.png", width = 300, heigh = 300)
+plotMA(res_SMLN, alpha = 0.5)
+dev.off()
+```
+```{r}
+png(filename = "Ref_based/MAplot/MAplot_SALA.png", width = 300, heigh = 300)
+plotMA(res_SALA, alpha = 0.5)
+dev.off()
+png(filename = "Ref_based/MAplot/MAplot_SILI.png", width = 300, heigh = 300)
+plotMA(res_SILI, alpha = 0.5)
+dev.off()
+png(filename = "Ref_based/MAplot/MAplot_SMLM.png", width = 300, heigh = 300)
+plotMA(res_SMLM, alpha = 0.5)
+dev.off()
+```
+
+###Plot Vocano
+```{r}
+library("dplyr")
+res_LALN <- as.data.frame(res_LALN)
+mutate_LALN <- mutate(res_LALN, sig=ifelse(res_LALN$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_LALN <- cbind(res_LALN, mutate_LALN$sig)
+colnames(res_LALN)[7] <- "sig"
+ggplot(res_LALN, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+  labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_LALN.png", width = 9, height = 6, unit = "cm")
+
+res_LILN <- as.data.frame(res_LILN)
+mutate_LILN <- mutate(res_LILN, sig=ifelse(res_LILN$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_LILN <- cbind(res_LILN, mutate_LILN$sig)
+colnames(res_LILN)[7] <- "sig"
+ggplot(res_LILN, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+    labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_LILN.png", width = 9, height = 6, unit = "cm")
+
+res_LMLN <- as.data.frame(res_LMLN)
+mutate_LMLN <- mutate(res_LMLN, sig=ifelse(res_LMLN$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_LMLN <- cbind(res_LMLN, mutate_LMLN$sig)
+colnames(res_LMLN)[7] <- "sig"
+ggplot(res_LMLN, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+    labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_LMLN.png", width = 9, height = 6, unit = "cm")
+```
+```{r}
+res_SALN <- as.data.frame(res_SALN)
+mutate_SALN <- mutate(res_SALN, sig=ifelse(res_SALN$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_SALN <- cbind(res_SALN, mutate_SALN$sig)
+colnames(res_SALN)[7] <- "sig"
+ggplot(res_SALN, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+    labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_SALN.png", width = 9, height = 6, unit = "cm")
+
+res_SILN <- as.data.frame(res_SILN)
+mutate_SILN <- mutate(res_SILN, sig=ifelse(res_SILN$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_SILN <- cbind(res_SILN, mutate_SILN$sig)
+colnames(res_SILN)[7] <- "sig"
+ggplot(res_SILN, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+    labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_SILN.png", width = 9, height = 6, unit = "cm")
+
+res_SMLN <- as.data.frame(res_SMLN)
+mutate_SMLN <- mutate(res_SMLN, sig=ifelse(res_SMLN$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_SMLN <- cbind(res_SMLN, mutate_SMLN$sig)
+colnames(res_SMLN)[7] <- "sig"
+ggplot(res_SMLN, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+    labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_SMLN.png", width = 9, height = 6, unit = "cm")
+```
+
+```{r}
+res_SALA <- as.data.frame(res_SALA)
+mutate_SALA <- mutate(res_SALA, sig=ifelse(res_SALA$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_SALA <- cbind(res_SALA, mutate_SALA$sig)
+colnames(res_SALA)[7] <- "sig"
+ggplot(res_SALA, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+    labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_SALA.png", width = 9, height = 6, unit = "cm")
+
+res_SILI <- as.data.frame(res_SILI)
+mutate_SILI <- mutate(res_SILI, sig=ifelse(res_SILI$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_SILI <- cbind(res_SILI, mutate_SILI$sig)
+colnames(res_SILI)[7] <- "sig"
+ggplot(res_SILI, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+    labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_SILI.png", width = 9, height = 6, unit = "cm")
+
+res_SMLM <- as.data.frame(res_SMLM)
+mutate_SMLM <- mutate(res_SMLM, sig=ifelse(res_SMLM$padj<0.05, "padj<0.05", "Not Sig")) #Will have different colors depending on significance
+res_SMLM <- cbind(res_SMLM, mutate_SMLM$sig)
+colnames(res_SMLM)[7] <- "sig"
+ggplot(res_SMLM, aes(log2FoldChange, -log10(pvalue))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(colour=sig), size = 1, alpha = 0.5) + #add points colored by significance
+    scale_color_manual(na.value = "grey", values = c("Not Sig" = "black", "padj<0.05" = "blue")) + 
+    labs(color = "Significance:") +
+    theme_own()
+ggsave("Ref_based/Vocano/volc_SMLM.png", width = 9, height = 6, unit = "cm")
+```
+
+###Get list
+```{r}
+LALN_sig <- rownames(subset(res_LALN, res_LALN$padj <= 0.05))
+write(LALN_sig, "Ref_based/DESeq_sig_list/LALN_sig.txt")
+LILN_sig <- rownames(subset(res_LILN, res_LILN$padj <= 0.05))
+write(LILN_sig, "Ref_based/DESeq_sig_list/LILN_sig.txt")
+LMLN_sig <- rownames(subset(res_LMLN, res_LMLN$padj <= 0.05))
+write(LMLN_sig, "Ref_based/DESeq_sig_list/LMLN_sig.txt")
+
+SALN_sig <- rownames(subset(res_SALN, res_SALN$padj <= 0.05))
+write(SALN_sig, "Ref_based/DESeq_sig_list/SALN_sig.txt")
+SILN_sig <- rownames(subset(res_SILN, res_SILN$padj <= 0.05))
+write(SILN_sig, "Ref_based/DESeq_sig_list/SILN_sig.txt")
+SMLN_sig <- rownames(subset(res_SMLN, res_SMLN$padj <= 0.05))
+write(SMLN_sig, "Ref_based/DESeq_sig_list/SMLN_sig.txt")
+
+SALA_sig <- rownames(subset(res_SALA, res_SALA$padj <= 0.001))
+write(SALA_sig, "Ref_based/DESeq_sig_list/SALA_sig.txt")
+SILI_sig <- rownames(subset(res_SILI, res_SILI$padj <= 0.001))
+write(SILI_sig, "Ref_based/DESeq_sig_list/SILI_sig.txt")
+SMLM_sig <- rownames(subset(res_SMLM, res_SMLM$padj <= 0.001))
+write(SMLM_sig, "Ref_based/DESeq_sig_list/SMLM_sig.txt")
+
+LNsig <- intersect(intersect(LALN_sig, LILN_sig), LMLN_sig)
+SNsig <- intersect(intersect(SALN_sig, SILN_sig), SMLN_sig)
+SLsig <- intersect(intersect(SALA_sig, SILI_sig), SMLM_sig)
+sig <- union(union(LNsig, SNsig), SLsig)
+write(LNsig, "Ref_based/DESeq_sig_list/LN_sig.txt")
+write(SNsig, "Ref_based/DESeq_sig_list/SN_sig.txt")
+write(SLsig, "Ref_based/DESeq_sig_list/SL_sig.txt")
+```
+
+```{r}
+LALN_sig2 <- rownames(subset(res_LALN, res_LALN$padj <= 0.01))
+LILN_sig2 <- rownames(subset(res_LILN, res_LILN$padj <= 0.01))
+LMLN_sig2 <- rownames(subset(res_LMLN, res_LMLN$padj <= 0.01))
+
+SALN_sig2 <- rownames(subset(res_SALN, res_SALN$padj <= 0.01))
+SILN_sig2 <- rownames(subset(res_SILN, res_SILN$padj <= 0.01))
+SMLN_sig2 <- rownames(subset(res_SMLN, res_SMLN$padj <= 0.01))
+
+SALA_sig2 <- rownames(subset(res_SALA, res_SALA$padj <= 0.01))
+SILI_sig2 <- rownames(subset(res_SILI, res_SILI$padj <= 0.01))
+SMLM_sig2 <- rownames(subset(res_SMLM, res_SMLM$padj <= 0.01))
+
+LNsig2 <- intersect(intersect(LALN_sig2, LILN_sig2), LMLN_sig2)
+SNsig2 <- intersect(intersect(SALN_sig2, SILN_sig2), SMLN_sig2)
+SLsig2 <- intersect(intersect(SALA_sig2, SILI_sig2), SMLM_sig2)
+sig2 <- union(union(LNsig2, SNsig2), SLsig2)
+```
+
+```{r}
+Treated_Untreated_sig <- setdiff(intersect(LNsig, SNsig), SLsig)
+write(Treated_Untreated_sig, "Ref_based/DESeq_sig_list/Treated_Untreated_sig.txt")
+```
+
+###Venn Diagram
+```{r}
+library(VennDiagram)
+LN <- list(A = LALN_sig, B = LILN_sig, C = LMLN_sig)
+VD_LN <- venn.diagram(LN, 
+                      "Ref_based/VD_LN.png", width = 8, height = 8, units = "cm",
+                      category = c("Amikacin", "Imipenem", "Meropenem"),
+                      fill = c("#E69F00", "#56B4E9", "#CC79A7"), alpha = rep(0.7, 3),
+                      cex = rep(1, 7), 
+                      lwd = rep(1, 3), col = c( "#999999", "#999999", "#999999"),
+                      main = "Midlog VS Untreated")
+SN <- list(A = SALN_sig, B = SILN_sig, C = SMLN_sig)
+VD_LN <- venn.diagram(SN, 
+                      "Ref_based/VD_SN.png", width = 8, height = 8, units = "cm",
+                      category = c("Amikacin", "Imipenem", "Meropenem"),
+                      fill = c("#E69F00", "#56B4E9", "#CC79A7"), alpha = rep(0.7, 3),
+                      cex = rep(1, 7), 
+                      lwd = rep(1, 3), col = c( "#999999", "#999999", "#999999"),
+                      main = "Stationary VS Untreated")
+SL <- list(A = SALA_sig, B = SILI_sig, C = SMLM_sig)
+VD_LN <- venn.diagram(SL, 
+                      "Ref_based/VD_SL.png", width = 8, height = 8, units = "cm",
+                      category = c("Amikacin", "Imipenem", "Meropenem"),
+                      fill = c("#E69F00", "#56B4E9", "#CC79A7"), alpha = rep(0.7, 3),
+                      cex = rep(1, 7), 
+                      lwd = rep(1, 3), col = c( "#999999", "#999999", "#999999"),
+                      main = "Stationary VS Midlog")
+```
+
+
+```{r}
+Total <- list(A = LNsig, B = SNsig, C = SLsig)
+VD_Total <- venn.diagram(Total, 
+                      "Ref_based/VD_Total.png", width = 8, height = 8, units = "cm",
+                      category = c("LN", "SN", "SL"),
+                      fill = c("#E69F00", "#56B4E9", "#CC79A7"), alpha = rep(0.7, 3),
+                      cex = rep(1, 7), 
+                      lwd = rep(1, 3), col = c( "#999999", "#999999", "#999999"),
+                      main = "Total")
+```
+
+
+
+###Plot Gene
+```{r}
+for (siggene in sig2)
+{
+d <- plotCounts(dds, gene=siggene, intgroup="phase", returnData=TRUE)
+ggplot(d, aes(x=phase, y=count)) + 
+  geom_point(position=position_jitter(w=0.1,h=0)) + 
+  scale_y_log10() +
+  scale_x_discrete(limit = c("C", "L", "S"),
+                   labels = c("Untreated", "Midlog", "Stationary")) +
+  theme_own() +
+  ggtitle(siggene) +
+  xlab("Phase") + ylab("Count")
+ggsave(filename = paste("Ref_based/Represent_gene/",siggene, ".png", sep =''), 
+       height = 8, width = 8, unit = "cm")
+}
+
+```
+
+```{r}
+d <- plotCounts(dds, gene="CP003846.1:454108-454334(+)", intgroup="phase", returnData=TRUE)
+ggplot(d, aes(x=phase, y=count)) + 
+  geom_point(position=position_jitter(w=0.1,h=0)) + 
+  scale_y_log10() +
+  scale_x_discrete(limit = c("C", "L", "S"),
+                   labels = c("Untreated", "Midlog", "Stationary")) +
+  theme_own() +
+  xlab("Phase") + ylab("Count")
+```
+
+
